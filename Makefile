@@ -87,7 +87,7 @@ pipeline: curate eda train artifact ## Full data+ML pipeline end-to-end
 
 ## SECTION Tests & quality
 .PHONY: test test-unit test-integration lint format type-check
-test: $(MODEL_FILE) ## Run all tests (29 expected)
+test: $(MODEL_FILE) ## Run all pytest tests (27 expected: 17 unit + 10 integration)
 	@cd api && ../$(PYTEST) -v
 
 test-unit: ## Unit tests only
@@ -220,11 +220,6 @@ vertex-schedule-pause: ## Pause a schedule (NAME=...)
 vertex-schedule-delete: ## Delete a schedule (NAME=...)
 	@PROJECT_ID=$${PROJECT_ID:?set PROJECT_ID} REGION=$${REGION:-europe-west3} \
 	  PYTHONPATH=. $(PY) -m ml_vertex.schedule delete --name $${NAME:?set NAME}
-
-## SECTION Docs
-.PHONY: pdfs
-pdfs: ## Render docs/*.md → docs/pdf/*.pdf via pandoc + Chrome headless
-	@bash infra/scripts/09_render_pdfs.sh
 
 ## SECTION dbt (BigQuery curated layer)
 DBT          := $(VENV_BIN)/dbt

@@ -136,19 +136,65 @@ def train_op(
 
 # ---------------------------------------------------------------------------
 # Component 3 — evaluate
-# Gate: returns True iff success rate beats baseline by min_improvement_pp.
+# Promotion gate. Both conditions must hold:
+#   (a) new model beats the always-pick-Group-1 baseline by >= min_improvement_pp
+#   (b) new model is no worse than the currently-deployed incumbent (within tolerance_pp).
+# If no incumbent exists yet (first run / cold start), only (a) is enforced.
+# Reads incumbent score from gs://{models_bucket}/current/metadata.json — the
+# same file written by register_op on every successful promotion.
 # ---------------------------------------------------------------------------
 @dsl.component(base_image=_pipeline_image())
 def evaluate_op(
     test_success_rate: float,
     baseline: float,
     min_improvement_pp: float,
+    models_bucket: str,
+    incumbent_tolerance_pp: float = 0.0,
 ) -> bool:
+    import json
+
+    from google.api_core.exceptions import NotFound
+    from google.cloud import storage
+
+    # Gate (a): lift over baseline
     improvement_pp = (test_success_rate - baseline) * 100
-    approved = improvement_pp >= min_improvement_pp
-    print(f"baseline={baseline:.4f} success={test_success_rate:.4f} "
-          f"improvement={improvement_pp:.2f}pp threshold={min_improvement_pp:.2f}pp "
-          f"approved={approved}")
+    beats_baseline = improvement_pp >= min_improvement_pp
+    print(f"[gate-a baseline] baseline={baseline:.4f} "
+          f"new_success={test_success_rate:.4f} "
+          f"improvement={improvement_pp:.2f}pp "
+          f"threshold={min_improvement_pp:.2f}pp "
+          f"pass={beats_baseline}")
+
+    # Gate (b): not worse than the currently-deployed model
+    incumbent_success = None
+    try:
+        client = storage.Client()
+        blob = client.bucket(models_bucket).blob("current/metadata.json")
+        meta = json.loads(blob.download_as_text())
+        # metadata.json["performance"] is the metrics payload written by train_op
+        incumbent_success = float(meta["performance"]["test_success_rate"])
+    except NotFound:
+        print("[gate-b incumbent] no incumbent metadata.json found "
+              "— treating as first deploy, gate-b is N/A")
+    except (KeyError, ValueError) as e:
+        print(f"[gate-b incumbent] WARN: could not parse incumbent score ({e}) "
+              "— treating as first deploy, gate-b is N/A")
+
+    if incumbent_success is None:
+        beats_incumbent = True
+        delta_pp = None
+    else:
+        delta_pp = (test_success_rate - incumbent_success) * 100
+        beats_incumbent = delta_pp >= -incumbent_tolerance_pp
+        print(f"[gate-b incumbent] incumbent_success={incumbent_success:.4f} "
+              f"new_success={test_success_rate:.4f} "
+              f"delta={delta_pp:+.2f}pp "
+              f"tolerance=-{incumbent_tolerance_pp:.2f}pp "
+              f"pass={beats_incumbent}")
+
+    approved = beats_baseline and beats_incumbent
+    print(f"[gate] approved={approved} "
+          f"(beats_baseline={beats_baseline}, beats_incumbent={beats_incumbent})")
     return bool(approved)
 
 
@@ -357,6 +403,7 @@ def retrain_pipeline(
         test_success_rate=train.outputs["test_success_rate"],
         baseline=baseline,
         min_improvement_pp=min_improvement_pp,
+        models_bucket=models_bucket,
     )
 
     # Gate: only register + promote if evaluation approves
