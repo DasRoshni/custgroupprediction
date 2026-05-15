@@ -28,3 +28,4 @@ ml/artifacts/*.onnx
 *.tfstate
 *.tfstate.backup
 .terraform/
+.claude/
