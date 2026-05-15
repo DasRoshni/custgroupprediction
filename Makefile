@@ -177,6 +177,55 @@ smoke-prod: ## Step 6 — Smoke-test the live Cloud Run service
 deploy-all: gcp-bootstrap bq-setup image-push model-upload deploy smoke-prod ## Full deploy in order (~30 min)
 	@:
 
+## SECTION Vertex AI Pipelines
+.PHONY: vertex-image vertex-grant vertex-compile vertex-submit vertex-run
+vertex-image: ## Build & push the pipeline base image
+	@PROJECT_ID=$${PROJECT_ID:?set PROJECT_ID} REGION=$${REGION:-us-central1} \
+	  IMAGE_TAG=$${IMAGE_TAG:-v1.0.0} bash infra/scripts/07_build_pipeline_image.sh
+
+vertex-grant: ## One-time: grant runtime SA the permissions Vertex AI Pipelines needs
+	@PROJECT_ID=$${PROJECT_ID:?set PROJECT_ID}; \
+	SA=customer-group-predictor-sa@$${PROJECT_ID}.iam.gserviceaccount.com; \
+	for role in roles/aiplatform.user roles/bigquery.jobUser roles/bigquery.dataEditor roles/storage.objectAdmin roles/run.admin roles/artifactregistry.reader; do \
+	  echo "==> grant $$role to $$SA"; \
+	  gcloud projects add-iam-policy-binding $$PROJECT_ID \
+	    --member="serviceAccount:$$SA" --role="$$role" --condition=None --quiet >/dev/null; \
+	done
+
+vertex-compile: ## Compile pipeline DSL -> pipeline.json
+	@PROJECT_ID=$${PROJECT_ID:?set PROJECT_ID} REGION=$${REGION:-us-central1} \
+	  IMAGE_TAG=$${IMAGE_TAG:-v1.0.0} \
+	  PYTHONPATH=. $(PY) -m ml_vertex.compile \
+	    --image $${REGION:-us-central1}-docker.pkg.dev/$${PROJECT_ID}/customer-group-predictor-images/customer-group-predictor-pipeline:$${IMAGE_TAG:-v1.0.0}
+
+vertex-submit: ## Submit a pipeline run
+	@PROJECT_ID=$${PROJECT_ID:?set PROJECT_ID} REGION=$${REGION:-us-central1} \
+	  PYTHONPATH=. $(PY) -m ml_vertex.submit
+
+vertex-run: vertex-compile vertex-submit ## Compile + submit in one step
+	@:
+
+vertex-schedule-create: ## Create weekly Mon 03:00 UTC schedule
+	@PROJECT_ID=$${PROJECT_ID:?set PROJECT_ID} REGION=$${REGION:-europe-west3} \
+	  PYTHONPATH=. $(PY) -m ml_vertex.schedule create
+
+vertex-schedules: ## List Vertex AI Pipeline schedules
+	@PROJECT_ID=$${PROJECT_ID:?set PROJECT_ID} REGION=$${REGION:-europe-west3} \
+	  PYTHONPATH=. $(PY) -m ml_vertex.schedule list
+
+vertex-schedule-pause: ## Pause a schedule (NAME=...)
+	@PROJECT_ID=$${PROJECT_ID:?set PROJECT_ID} REGION=$${REGION:-europe-west3} \
+	  PYTHONPATH=. $(PY) -m ml_vertex.schedule pause --name $${NAME:?set NAME}
+
+vertex-schedule-delete: ## Delete a schedule (NAME=...)
+	@PROJECT_ID=$${PROJECT_ID:?set PROJECT_ID} REGION=$${REGION:-europe-west3} \
+	  PYTHONPATH=. $(PY) -m ml_vertex.schedule delete --name $${NAME:?set NAME}
+
+## SECTION Docs
+.PHONY: pdfs
+pdfs: ## Render docs/*.md → docs/pdf/*.pdf via pandoc + Chrome headless
+	@bash infra/scripts/09_render_pdfs.sh
+
 ## SECTION dbt (BigQuery curated layer)
 DBT          := $(VENV_BIN)/dbt
 DBT_PROFILES := ml_dbt/profiles

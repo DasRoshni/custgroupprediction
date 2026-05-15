@@ -1,0 +1,32 @@
+# syntax=docker/dockerfile:1.7
+# Vertex AI Pipelines training/dbt-runner image.
+# Reused as base_image by every Python function component, so each step
+# can `from customergroups.*` without re-installing anything at runtime.
+
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libgomp1 git \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Slim pipeline-only requirements (no jupyter/shap/matplotlib bloat).
+COPY infra/docker/pipeline-requirements.txt /tmp/reqs.txt
+RUN pip install --upgrade pip && pip install -r /tmp/reqs.txt
+
+# Install customergroups package
+COPY ml /app/ml
+RUN pip install /app/ml
+
+# Copy dbt project + profiles
+COPY ml_dbt /app/ml_dbt
+
+ENV DBT_PROFILES_DIR=/app/ml_dbt/profiles
+
+# No CMD — Vertex AI components override command per step.

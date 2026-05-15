@@ -1,0 +1,680 @@
+{
+  "components": {
+    "comp-condition-1": {
+      "dag": {
+        "tasks": {
+          "redeploy-cloud-run-op": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-redeploy-cloud-run-op"
+            },
+            "dependentTasks": [
+              "register-op",
+              "vertex-registry-op"
+            ],
+            "inputs": {
+              "parameters": {
+                "model_version": {
+                  "componentInputParameter": "pipelinechannel--model_version"
+                },
+                "project_id": {
+                  "componentInputParameter": "pipelinechannel--project_id"
+                },
+                "region": {
+                  "componentInputParameter": "pipelinechannel--region"
+                },
+                "service_name": {
+                  "componentInputParameter": "pipelinechannel--cloud_run_service"
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "redeploy-cloud-run-op"
+            }
+          },
+          "register-op": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-register-op"
+            },
+            "inputs": {
+              "artifacts": {
+                "metrics_artifact": {
+                  "componentInputArtifact": "pipelinechannel--train-op-metrics_artifact"
+                },
+                "model_artifact": {
+                  "componentInputArtifact": "pipelinechannel--train-op-model_artifact"
+                }
+              },
+              "parameters": {
+                "model_version": {
+                  "componentInputParameter": "pipelinechannel--model_version"
+                },
+                "models_bucket": {
+                  "componentInputParameter": "pipelinechannel--models_bucket"
+                },
+                "project_id": {
+                  "componentInputParameter": "pipelinechannel--project_id"
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "register-op"
+            }
+          },
+          "vertex-registry-op": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-vertex-registry-op"
+            },
+            "dependentTasks": [
+              "register-op"
+            ],
+            "inputs": {
+              "parameters": {
+                "model_version": {
+                  "componentInputParameter": "pipelinechannel--model_version"
+                },
+                "models_bucket": {
+                  "componentInputParameter": "pipelinechannel--models_bucket"
+                },
+                "project_id": {
+                  "componentInputParameter": "pipelinechannel--project_id"
+                },
+                "region": {
+                  "componentInputParameter": "pipelinechannel--region"
+                },
+                "test_accuracy": {
+                  "componentInputParameter": "pipelinechannel--train-op-test_accuracy"
+                },
+                "test_macro_f1": {
+                  "componentInputParameter": "pipelinechannel--train-op-test_macro_f1"
+                },
+                "test_success_rate": {
+                  "componentInputParameter": "pipelinechannel--train-op-test_success_rate"
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "vertex-registry-op"
+            }
+          }
+        }
+      },
+      "inputDefinitions": {
+        "artifacts": {
+          "pipelinechannel--train-op-metrics_artifact": {
+            "artifactType": {
+              "schemaTitle": "system.Metrics",
+              "schemaVersion": "0.0.1"
+            }
+          },
+          "pipelinechannel--train-op-model_artifact": {
+            "artifactType": {
+              "schemaTitle": "system.Model",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        },
+        "parameters": {
+          "pipelinechannel--cloud_run_service": {
+            "parameterType": "STRING"
+          },
+          "pipelinechannel--evaluate-op-Output": {
+            "parameterType": "BOOLEAN"
+          },
+          "pipelinechannel--model_version": {
+            "parameterType": "STRING"
+          },
+          "pipelinechannel--models_bucket": {
+            "parameterType": "STRING"
+          },
+          "pipelinechannel--project_id": {
+            "parameterType": "STRING"
+          },
+          "pipelinechannel--region": {
+            "parameterType": "STRING"
+          },
+          "pipelinechannel--train-op-test_accuracy": {
+            "parameterType": "NUMBER_DOUBLE"
+          },
+          "pipelinechannel--train-op-test_macro_f1": {
+            "parameterType": "NUMBER_DOUBLE"
+          },
+          "pipelinechannel--train-op-test_success_rate": {
+            "parameterType": "NUMBER_DOUBLE"
+          }
+        }
+      }
+    },
+    "comp-dbt-build-op": {
+      "executorLabel": "exec-dbt-build-op",
+      "inputDefinitions": {
+        "parameters": {
+          "bq_location": {
+            "parameterType": "STRING"
+          },
+          "dataset": {
+            "parameterType": "STRING"
+          },
+          "project_id": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "Output": {
+            "parameterType": "NUMBER_INTEGER"
+          }
+        }
+      }
+    },
+    "comp-evaluate-op": {
+      "executorLabel": "exec-evaluate-op",
+      "inputDefinitions": {
+        "parameters": {
+          "baseline": {
+            "parameterType": "NUMBER_DOUBLE"
+          },
+          "min_improvement_pp": {
+            "parameterType": "NUMBER_DOUBLE"
+          },
+          "test_success_rate": {
+            "parameterType": "NUMBER_DOUBLE"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "Output": {
+            "parameterType": "BOOLEAN"
+          }
+        }
+      }
+    },
+    "comp-redeploy-cloud-run-op": {
+      "executorLabel": "exec-redeploy-cloud-run-op",
+      "inputDefinitions": {
+        "parameters": {
+          "model_version": {
+            "parameterType": "STRING"
+          },
+          "project_id": {
+            "parameterType": "STRING"
+          },
+          "region": {
+            "parameterType": "STRING"
+          },
+          "service_name": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "Output": {
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-register-op": {
+      "executorLabel": "exec-register-op",
+      "inputDefinitions": {
+        "artifacts": {
+          "metrics_artifact": {
+            "artifactType": {
+              "schemaTitle": "system.Metrics",
+              "schemaVersion": "0.0.1"
+            }
+          },
+          "model_artifact": {
+            "artifactType": {
+              "schemaTitle": "system.Model",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        },
+        "parameters": {
+          "model_version": {
+            "parameterType": "STRING"
+          },
+          "models_bucket": {
+            "parameterType": "STRING"
+          },
+          "project_id": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "Output": {
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-train-op": {
+      "executorLabel": "exec-train-op",
+      "inputDefinitions": {
+        "parameters": {
+          "bq_location": {
+            "parameterType": "STRING"
+          },
+          "dataset": {
+            "parameterType": "STRING"
+          },
+          "project_id": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "artifacts": {
+          "metrics_artifact": {
+            "artifactType": {
+              "schemaTitle": "system.Metrics",
+              "schemaVersion": "0.0.1"
+            }
+          },
+          "model_artifact": {
+            "artifactType": {
+              "schemaTitle": "system.Model",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        },
+        "parameters": {
+          "test_accuracy": {
+            "parameterType": "NUMBER_DOUBLE"
+          },
+          "test_macro_f1": {
+            "parameterType": "NUMBER_DOUBLE"
+          },
+          "test_success_rate": {
+            "parameterType": "NUMBER_DOUBLE"
+          }
+        }
+      }
+    },
+    "comp-vertex-registry-op": {
+      "executorLabel": "exec-vertex-registry-op",
+      "inputDefinitions": {
+        "parameters": {
+          "model_version": {
+            "parameterType": "STRING"
+          },
+          "models_bucket": {
+            "parameterType": "STRING"
+          },
+          "project_id": {
+            "parameterType": "STRING"
+          },
+          "region": {
+            "parameterType": "STRING"
+          },
+          "test_accuracy": {
+            "parameterType": "NUMBER_DOUBLE"
+          },
+          "test_macro_f1": {
+            "parameterType": "NUMBER_DOUBLE"
+          },
+          "test_success_rate": {
+            "parameterType": "NUMBER_DOUBLE"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "Output": {
+            "parameterType": "STRING"
+          }
+        }
+      }
+    }
+  },
+  "deploymentSpec": {
+    "executors": {
+      "exec-dbt-build-op": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "dbt_build_op"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.1' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef dbt_build_op(\n    project_id: str,\n    dataset: str,\n    bq_location: str,\n) -> int:\n    import os\n    import subprocess\n\n    from google.cloud import bigquery\n\n    env = os.environ.copy()\n    env[\"PROJECT_ID\"] = project_id\n    env[\"DATASET\"] = dataset\n    env[\"BQ_LOCATION\"] = bq_location\n\n    print(\"==> dbt build\")\n    result = subprocess.run(\n        [\"dbt\", \"build\",\n         \"--project-dir\", \"/app/ml_dbt\",\n         \"--profiles-dir\", \"/app/ml_dbt/profiles\"],\n        env=env, check=False, capture_output=True, text=True,\n    )\n    print(result.stdout)\n    if result.returncode != 0:\n        print(\"STDERR:\", result.stderr)\n        raise RuntimeError(f\"dbt build failed (exit {result.returncode})\")\n\n    client = bigquery.Client(project=project_id, location=bq_location)\n    n = list(client.query(\n        f\"SELECT COUNT(*) AS n FROM `{project_id}.{dataset}.campaigns_curated`\"\n    ).result())[0].n\n    print(f\"campaigns_curated row count: {n}\")\n    return int(n)\n\n"
+          ],
+          "image": "europe-west3-docker.pkg.dev/roshni-das-511/customer-group-predictor-images/customer-group-predictor-pipeline:v1.0.3"
+        }
+      },
+      "exec-evaluate-op": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "evaluate_op"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.1' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef evaluate_op(\n    test_success_rate: float,\n    baseline: float,\n    min_improvement_pp: float,\n) -> bool:\n    improvement_pp = (test_success_rate - baseline) * 100\n    approved = improvement_pp >= min_improvement_pp\n    print(f\"baseline={baseline:.4f} success={test_success_rate:.4f} \"\n          f\"improvement={improvement_pp:.2f}pp threshold={min_improvement_pp:.2f}pp \"\n          f\"approved={approved}\")\n    return bool(approved)\n\n"
+          ],
+          "image": "europe-west3-docker.pkg.dev/roshni-das-511/customer-group-predictor-images/customer-group-predictor-pipeline:v1.0.3"
+        }
+      },
+      "exec-redeploy-cloud-run-op": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "redeploy_cloud_run_op"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.1' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef redeploy_cloud_run_op(\n    project_id: str,\n    region: str,\n    service_name: str,\n    model_version: str,\n) -> str:\n    from datetime import datetime, timezone\n\n    from google.cloud import run_v2\n\n    client = run_v2.ServicesClient()\n    name = f\"projects/{project_id}/locations/{region}/services/{service_name}\"\n    service = client.get_service(name=name)\n\n    # Bump the MODEL_VERSION_DEPLOYED env var on the container. Any template\n    # change forces Cloud Run to roll out a new revision.\n    container = service.template.containers[0]\n    new_env = []\n    seen = False\n    for ev in container.env:\n        if ev.name in (\"MODEL_VERSION_DEPLOYED\", \"DEPLOYED_AT\"):\n            seen = True\n            continue  # drop stale, we'll re-add below\n        new_env.append(ev)\n    new_env.append(run_v2.EnvVar(\n        name=\"MODEL_VERSION_DEPLOYED\",\n        value=f\"{model_version}@{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}\",\n    ))\n    del container.env[:]\n    container.env.extend(new_env)\n\n    print(f\"forcing new revision for {service_name} (was-stale={seen})\")\n    op = client.update_service(service=service)\n    result = op.result(timeout=600)\n    print(f\"new revision: {result.latest_ready_revision}\")\n    return result.latest_ready_revision\n\n"
+          ],
+          "image": "europe-west3-docker.pkg.dev/roshni-das-511/customer-group-predictor-images/customer-group-predictor-pipeline:v1.0.3"
+        }
+      },
+      "exec-register-op": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "register_op"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.1' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef register_op(\n    project_id: str,\n    models_bucket: str,\n    model_version: str,\n    model_artifact: Input[Model],\n    metrics_artifact: Input[Metrics],\n) -> str:\n    import hashlib\n    import json\n    import platform\n    from datetime import datetime, timezone\n    from pathlib import Path\n\n    from google.cloud import storage\n\n    from customergroups.columns import PRE_CAMPAIGN_FEATURES\n    from customergroups.features import ENGINEERED_FEATURES\n\n    src = Path(model_artifact.path)\n    sha = hashlib.sha256()\n    with src.open(\"rb\") as f:\n        for chunk in iter(lambda: f.read(65536), b\"\"):\n            sha.update(chunk)\n\n    metrics = json.loads(Path(metrics_artifact.path).read_text())\n    metadata = {\n        \"model_name\": model_artifact.metadata.get(\"model_name\", \"xgboost\"),\n        \"model_version\": model_version,\n        \"trained_at\": datetime.now(timezone.utc).isoformat(),\n        \"trained_by\": \"vertex-ai-pipeline\",\n        \"python\": platform.python_version(),\n        \"input_schema\": {\n            \"required_features\": PRE_CAMPAIGN_FEATURES,\n            \"count\": len(PRE_CAMPAIGN_FEATURES),\n            \"post_campaign_columns_forbidden\": [\"g1_21\", \"g2_21\", \"c_28\"],\n        },\n        \"engineered_features\": {\n            \"names\": ENGINEERED_FEATURES,\n            \"count\": len(ENGINEERED_FEATURES),\n        },\n        \"performance\": metrics,\n        \"artifact_sha256\": sha.hexdigest(),\n    }\n    meta_path = Path(model_artifact.path).parent / \"metadata.json\"\n    meta_path.write_text(json.dumps(metadata, indent=2))\n\n    client = storage.Client(project=project_id)\n    bucket = client.bucket(models_bucket)\n    bucket.blob(f\"v{model_version}/model.joblib\").upload_from_filename(str(src))\n    bucket.blob(f\"v{model_version}/metadata.json\").upload_from_filename(str(meta_path))\n    bucket.blob(\"current/model.joblib\").upload_from_filename(str(src))\n    bucket.blob(\"current/metadata.json\").upload_from_filename(str(meta_path))\n\n    model_uri = f\"gs://{models_bucket}/current/model.joblib\"\n    print(f\"Promoted: {model_uri}\")\n    return model_uri\n\n"
+          ],
+          "image": "europe-west3-docker.pkg.dev/roshni-das-511/customer-group-predictor-images/customer-group-predictor-pipeline:v1.0.3"
+        }
+      },
+      "exec-train-op": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "train_op"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.1' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef train_op(\n    project_id: str,\n    dataset: str,\n    bq_location: str,\n    model_artifact: Output[Model],\n    metrics_artifact: Output[Metrics],\n) -> NamedTuple(\"TrainOut\", [\n    (\"test_success_rate\", float),\n    (\"test_accuracy\", float),\n    (\"test_macro_f1\", float),\n]):\n    import json\n    from pathlib import Path\n\n    import joblib\n\n    from customergroups.data import load_curated_from_bq\n    from customergroups.features import FeatureBuilder\n    from customergroups.training import Trainer, baseline_always_group1\n\n    df = load_curated_from_bq(project_id, dataset, \"campaigns_curated\", bq_location)\n    print(f\"Loaded {len(df)} rows from BQ\")\n\n    fb = FeatureBuilder()\n    trainer = Trainer(feature_builder=fb, augment=True)\n    X_train, X_test, y_train, y_test = trainer.prepare_splits(df)\n    baseline = baseline_always_group1(y_test.values)\n    print(f\"Baseline: {baseline:.4f}\")\n\n    xgb_result, xgb_model = trainer.train_xgb(X_train, y_train, X_test, y_test)\n    print(f\"XGBoost test success: {xgb_result.test_success_rate:.4f}\")\n\n    # Persist model bundle (Vertex AI uploads this to GCS automatically)\n    bundle_path = Path(model_artifact.path)\n    bundle_path.parent.mkdir(parents=True, exist_ok=True)\n    joblib.dump(\n        {\"model\": xgb_model, \"feature_builder\": fb, \"model_name\": xgb_result.name},\n        bundle_path,\n    )\n    model_artifact.metadata[\"model_name\"] = xgb_result.name\n    model_artifact.metadata[\"test_success_rate\"] = float(xgb_result.test_success_rate)\n    model_artifact.metadata[\"test_accuracy\"] = float(xgb_result.test_accuracy)\n    model_artifact.metadata[\"test_macro_f1\"] = float(xgb_result.test_macro_f1)\n    model_artifact.metadata[\"baseline_success_rate\"] = float(baseline)\n\n    # Metrics artifact (auto-rendered in Vertex AI UI)\n    metrics_payload = {\n        \"baseline_success_rate\": baseline,\n        \"test_success_rate\": xgb_result.test_success_rate,\n        \"test_accuracy\": xgb_result.test_accuracy,\n        \"test_macro_f1\": xgb_result.test_macro_f1,\n        \"cv_accuracy_mean\": xgb_result.cv_accuracy_mean,\n        \"cv_accuracy_std\": xgb_result.cv_accuracy_std,\n        \"improvement_pp\": (xgb_result.test_success_rate - baseline) * 100,\n    }\n    Path(metrics_artifact.path).write_text(json.dumps(metrics_payload, indent=2))\n    for k, v in metrics_payload.items():\n        metrics_artifact.log_metric(k, float(v))\n\n    from collections import namedtuple\n    Out = namedtuple(\"TrainOut\", [\"test_success_rate\", \"test_accuracy\", \"test_macro_f1\"])\n    return Out(\n        test_success_rate=float(xgb_result.test_success_rate),\n        test_accuracy=float(xgb_result.test_accuracy),\n        test_macro_f1=float(xgb_result.test_macro_f1),\n    )\n\n"
+          ],
+          "image": "europe-west3-docker.pkg.dev/roshni-das-511/customer-group-predictor-images/customer-group-predictor-pipeline:v1.0.3"
+        }
+      },
+      "exec-vertex-registry-op": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "vertex_registry_op"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.1' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef vertex_registry_op(\n    project_id: str,\n    region: str,\n    models_bucket: str,\n    model_version: str,\n    test_success_rate: float,\n    test_accuracy: float,\n    test_macro_f1: float,\n) -> str:\n    from google.cloud import aiplatform\n\n    aiplatform.init(project=project_id, location=region)\n    display_name = \"customer-group-predictor\"\n\n    # The artifact_uri must point at a GCS *directory* (not the file), since\n    # the Vertex AI Model Registry treats it as a folder of model files.\n    artifact_uri = f\"gs://{models_bucket}/v{model_version}/\"\n    print(f\"artifact_uri: {artifact_uri}\")\n\n    # If a registered model with this display name already exists, register a\n    # new version under it (parent_model). Otherwise create a fresh entry.\n    existing = aiplatform.Model.list(filter=f'display_name=\"{display_name}\"')\n    parent_model = existing[0].resource_name if existing else None\n    print(f\"parent_model: {parent_model or '(new entry)'}\")\n\n    # Container spec \u2014 we use the prediction service container so the model\n    # CAN be deployed to a Vertex AI Endpoint later if needed.\n    serving_image = (\n        f\"{region}-docker.pkg.dev/{project_id}/customer-group-predictor-images/\"\n        \"customer-group-predictor:v1.0.1\"\n    )\n\n    model = aiplatform.Model.upload(\n        display_name=display_name,\n        artifact_uri=artifact_uri,\n        serving_container_image_uri=serving_image,\n        serving_container_predict_route=\"/v1/predict\",\n        serving_container_health_route=\"/readyz\",\n        serving_container_ports=[8080],\n        parent_model=parent_model,\n        version_aliases=[f\"v{model_version.replace('.', '-')}\"],\n        version_description=(\n            f\"Trained {test_success_rate:.4f} success rate \"\n            f\"(acc {test_accuracy:.4f}, macroF1 {test_macro_f1:.4f}). \"\n            f\"Source: Vertex AI Pipeline.\"\n        ),\n        labels={\n            \"trained_by\":  \"vertex-ai-pipeline\",\n            \"framework\":   \"xgboost\",\n            \"task\":        \"classification\",\n        },\n    )\n    print(f\"Registered: {model.resource_name}\")\n    print(f\"Version:    {model.version_id}\")\n    return model.resource_name\n\n"
+          ],
+          "image": "europe-west3-docker.pkg.dev/roshni-das-511/customer-group-predictor-images/customer-group-predictor-pipeline:v1.0.3"
+        }
+      }
+    }
+  },
+  "pipelineInfo": {
+    "description": "Refresh BQ curated \u2192 train XGBoost \u2192 evaluate \u2192 promote to Cloud Run.",
+    "name": "customer-group-retrain"
+  },
+  "root": {
+    "dag": {
+      "tasks": {
+        "condition-1": {
+          "componentRef": {
+            "name": "comp-condition-1"
+          },
+          "dependentTasks": [
+            "evaluate-op",
+            "train-op"
+          ],
+          "inputs": {
+            "artifacts": {
+              "pipelinechannel--train-op-metrics_artifact": {
+                "taskOutputArtifact": {
+                  "outputArtifactKey": "metrics_artifact",
+                  "producerTask": "train-op"
+                }
+              },
+              "pipelinechannel--train-op-model_artifact": {
+                "taskOutputArtifact": {
+                  "outputArtifactKey": "model_artifact",
+                  "producerTask": "train-op"
+                }
+              }
+            },
+            "parameters": {
+              "pipelinechannel--cloud_run_service": {
+                "componentInputParameter": "cloud_run_service"
+              },
+              "pipelinechannel--evaluate-op-Output": {
+                "taskOutputParameter": {
+                  "outputParameterKey": "Output",
+                  "producerTask": "evaluate-op"
+                }
+              },
+              "pipelinechannel--model_version": {
+                "componentInputParameter": "model_version"
+              },
+              "pipelinechannel--models_bucket": {
+                "componentInputParameter": "models_bucket"
+              },
+              "pipelinechannel--project_id": {
+                "componentInputParameter": "project_id"
+              },
+              "pipelinechannel--region": {
+                "componentInputParameter": "region"
+              },
+              "pipelinechannel--train-op-test_accuracy": {
+                "taskOutputParameter": {
+                  "outputParameterKey": "test_accuracy",
+                  "producerTask": "train-op"
+                }
+              },
+              "pipelinechannel--train-op-test_macro_f1": {
+                "taskOutputParameter": {
+                  "outputParameterKey": "test_macro_f1",
+                  "producerTask": "train-op"
+                }
+              },
+              "pipelinechannel--train-op-test_success_rate": {
+                "taskOutputParameter": {
+                  "outputParameterKey": "test_success_rate",
+                  "producerTask": "train-op"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "condition-1"
+          },
+          "triggerPolicy": {
+            "condition": "inputs.parameter_values['pipelinechannel--evaluate-op-Output'] == true"
+          }
+        },
+        "dbt-build-op": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-dbt-build-op"
+          },
+          "inputs": {
+            "parameters": {
+              "bq_location": {
+                "componentInputParameter": "bq_location"
+              },
+              "dataset": {
+                "componentInputParameter": "dataset"
+              },
+              "project_id": {
+                "componentInputParameter": "project_id"
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "dbt-build-op"
+          }
+        },
+        "evaluate-op": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-evaluate-op"
+          },
+          "dependentTasks": [
+            "train-op"
+          ],
+          "inputs": {
+            "parameters": {
+              "baseline": {
+                "componentInputParameter": "baseline"
+              },
+              "min_improvement_pp": {
+                "componentInputParameter": "min_improvement_pp"
+              },
+              "test_success_rate": {
+                "taskOutputParameter": {
+                  "outputParameterKey": "test_success_rate",
+                  "producerTask": "train-op"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "evaluate-op"
+          }
+        },
+        "train-op": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-train-op"
+          },
+          "dependentTasks": [
+            "dbt-build-op"
+          ],
+          "inputs": {
+            "parameters": {
+              "bq_location": {
+                "componentInputParameter": "bq_location"
+              },
+              "dataset": {
+                "componentInputParameter": "dataset"
+              },
+              "project_id": {
+                "componentInputParameter": "project_id"
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "train-op"
+          }
+        }
+      }
+    },
+    "inputDefinitions": {
+      "parameters": {
+        "baseline": {
+          "defaultValue": 0.4645,
+          "isOptional": true,
+          "parameterType": "NUMBER_DOUBLE"
+        },
+        "bq_location": {
+          "defaultValue": "US",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "cloud_run_service": {
+          "defaultValue": "customer-group-predictor",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "dataset": {
+          "defaultValue": "marketing",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "min_improvement_pp": {
+          "defaultValue": 3.0,
+          "isOptional": true,
+          "parameterType": "NUMBER_DOUBLE"
+        },
+        "model_version": {
+          "defaultValue": "1.1.0",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "models_bucket": {
+          "defaultValue": "",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "project_id": {
+          "parameterType": "STRING"
+        },
+        "region": {
+          "defaultValue": "europe-west3",
+          "isOptional": true,
+          "parameterType": "STRING"
+        }
+      }
+    }
+  },
+  "schemaVersion": "2.1.0",
+  "sdkVersion": "kfp-2.16.1"
+}
