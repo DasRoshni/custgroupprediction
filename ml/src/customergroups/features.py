@@ -11,9 +11,6 @@ import numpy as np
 import pandas as pd
 
 from .columns import (
-    C_PRE,
-    G1_PRE,
-    G2_PRE,
     POST_CAMPAIGN,
     PRE_CAMPAIGN_FEATURES,
     TARGET,

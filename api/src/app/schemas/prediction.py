@@ -5,7 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, create_model
 
-from customergroups.columns import C_PRE, G1_PRE, G2_PRE, PRE_CAMPAIGN_FEATURES
+from customergroups.columns import PRE_CAMPAIGN_FEATURES
 
 
 # Build CampaignFeatures dynamically from the canonical column list so the schema

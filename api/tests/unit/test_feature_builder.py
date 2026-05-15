@@ -4,7 +4,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from customergroups.columns import POST_CAMPAIGN, PRE_CAMPAIGN_FEATURES, TARGET
+from customergroups.columns import PRE_CAMPAIGN_FEATURES, TARGET
 from customergroups.features import (
     DIFF_FEATURES,
     ENGINEERED_FEATURES,

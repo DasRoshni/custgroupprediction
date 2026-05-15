@@ -1,13 +1,10 @@
 """Training pipeline: LR baseline + XGBoost, with stratified CV and business metric."""
 from __future__ import annotations
 
-import json
 import logging
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
-import joblib
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
