@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: marketing
+    description: "Raw + staging tables for marketing campaign customer-group comparisons."
+    database: "{{ env_var('PROJECT_ID') }}"
+    schema: "{{ var('source_dataset') }}"
+    tables:
+      - name: campaigns_raw
+        description: "Strict-schema raw table loaded directly from CSV."
+        columns:
+          - name: target
+            description: "0 = neither profitable, 1 = group 1 wins, 2 = group 2 wins."
+            data_tests:
+              - not_null
+              - accepted_values:
+                  values: [0, 1, 2]
+                  quote: false
+
+      - name: campaigns_stg
+        description: "DQ-gated staging with full lineage metadata."
+        columns:
+          - name: _dq_status
+            description: "PENDING | PASSED | FAILED"
+          - name: _record_hash
+            description: "SHA-256 of business payload for dedup."
+          - name: _sourcefile_hash
+            description: "SHA-256 of source file for batch identity."

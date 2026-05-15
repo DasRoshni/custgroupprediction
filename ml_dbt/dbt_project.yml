@@ -1,0 +1,33 @@
+name: customer_groups
+version: '1.0.0'
+config-version: 2
+
+profile: customer_groups
+
+model-paths: ["models"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Default materializations per layer.
+# Override per-model via `{{ config(materialized='...') }}`.
+models:
+  customer_groups:
+    # Models land in the profile's target dataset (no +schema override → no _suffix).
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: table
+
+# vars usable across models; can be overridden on CLI: `dbt run --vars '{target_dataset: foo}'`
+vars:
+  source_dataset: "marketing"
+  raw_table: "campaigns_raw"
+  stg_table: "campaigns_stg"

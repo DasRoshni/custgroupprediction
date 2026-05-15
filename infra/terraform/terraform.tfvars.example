@@ -1,0 +1,5 @@
+project_id     = "my-gcp-project"
+region         = "us-central1"
+app_name       = "customer-group-predictor"
+image_tag      = "v1.0.0"
+invoker_member = "allUsers"

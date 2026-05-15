@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: stg_campaigns
+    description: |
+      Cleaned staging view: 67 pre-campaign features + INT64 target.
+      Post-campaign columns (g1_21, g2_21, c_28) are EXCLUDED — leakage guard.
+    columns:
+      - name: target
+        description: "0 = neither profitable, 1 = group 1 wins, 2 = group 2 wins"
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1, 2]
+              quote: false
+
+      - name: g1_1
+        data_tests: [not_null]
+      - name: g2_1
+        data_tests: [not_null]
+      - name: c_1
+        data_tests: [not_null]
+
+      - name: _record_hash
+        description: "SHA-256 of business payload"
+        data_tests: [not_null]
+      - name: _ingested_at
+        data_tests: [not_null]

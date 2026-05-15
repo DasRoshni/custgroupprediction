@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: campaigns_curated
+    description: |
+      Final curated feature table for ML training.
+      67 pre-campaign features + 20 diff features (d_*) + 20 ratio features (r_*) + target.
+      Post-campaign columns are guaranteed absent (see tests/no_leakage_in_curated.sql).
+    columns:
+      - name: target
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1, 2]
+              quote: false
+
+      # spot-check a few feature columns
+      - name: g1_1
+        data_tests: [not_null]
+      - name: d_1
+        description: "g1_1 - g2_1"
+      - name: r_1
+        description: "g1_1 / g2_1 (SAFE_DIVIDE; NULL on zero denominator)"

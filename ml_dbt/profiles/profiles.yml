@@ -1,0 +1,30 @@
+# dbt-BigQuery profile. Committed because there are no secrets here —
+# PROJECT_ID comes from the .env via env_var(), and auth uses local ADC
+# (your `gcloud auth application-default login` credential).
+
+customer_groups:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth                              # uses Application Default Credentials
+      project: "{{ env_var('PROJECT_ID') }}"
+      dataset: "{{ env_var('DATASET', 'marketing') }}"
+      location: "{{ env_var('BQ_LOCATION', 'EU') }}"
+      threads: 4
+      priority: interactive
+      retries: 1
+      job_execution_timeout_seconds: 600
+      job_creation_timeout_seconds: 60
+
+    prod:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('PROJECT_ID') }}"
+      dataset: "{{ env_var('DATASET', 'marketing') }}"
+      location: "{{ env_var('BQ_LOCATION', 'EU') }}"
+      threads: 4
+      priority: interactive
+      retries: 2
+      job_execution_timeout_seconds: 600
+      job_creation_timeout_seconds: 60

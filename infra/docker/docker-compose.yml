@@ -1,0 +1,17 @@
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
+    image: customer-group-predictor:local
+    ports:
+      - "8080:8080"
+    environment:
+      LOG_LEVEL: INFO
+      ENVIRONMENT: local
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/readyz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
