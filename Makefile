@@ -14,10 +14,32 @@ export
 PYTHON         ?= python3.11
 VENV           := .venv
 VENV_BIN       := $(VENV)/bin
-PIP            := $(VENV_BIN)/pip
-PY             := $(VENV_BIN)/python
-PYTEST         := $(VENV_BIN)/pytest
-UVICORN        := $(VENV_BIN)/uvicorn
+
+# The `install` / `venv` targets always create and populate the local venv,
+# so they reference its pip explicitly regardless of detection below.
+VENV_PIP       := $(VENV_BIN)/pip
+
+# Runtime tools: prefer the local venv when it exists (normal dev flow),
+# otherwise fall back to whatever is on PATH. This makes `make train`,
+# `make test`, etc. work in CI where deps are installed directly into the
+# runner's managed Python by `actions/setup-python` (no .venv is created).
+ifneq ($(wildcard $(VENV_BIN)/python),)
+  PIP            := $(VENV_BIN)/pip
+  PY             := $(VENV_BIN)/python
+  PYTEST         := $(VENV_BIN)/pytest
+  UVICORN        := $(VENV_BIN)/uvicorn
+  RUFF           := $(VENV_BIN)/ruff
+  MYPY           := $(VENV_BIN)/mypy
+  DBT            := $(VENV_BIN)/dbt
+else
+  PIP            := pip
+  PY             := python
+  PYTEST         := pytest
+  UVICORN        := uvicorn
+  RUFF           := ruff
+  MYPY           := mypy
+  DBT            := dbt
+endif
 
 PORT           ?= 8000
 HOST           ?= 127.0.0.1
@@ -43,15 +65,15 @@ help: ## Show this help
 .PHONY: setup install venv
 venv: ## Create the virtualenv (idempotent)
 	@test -d $(VENV) || $(PYTHON) -m venv $(VENV)
-	@$(PIP) install --quiet --upgrade pip
+	@$(VENV_PIP) install --quiet --upgrade pip
 
 install: venv ## Install all deps (ml + api + dev) and the customergroups package
 	@echo "==> Installing ML deps"
-	@$(PIP) install --quiet -r ml/requirements.txt
+	@$(VENV_PIP) install --quiet -r ml/requirements.txt
 	@echo "==> Installing API + dev deps"
-	@$(PIP) install --quiet -r api/requirements-dev.txt
+	@$(VENV_PIP) install --quiet -r api/requirements-dev.txt
 	@echo "==> Installing customergroups (editable)"
-	@$(PIP) install --quiet -e ml/
+	@$(VENV_PIP) install --quiet -e ml/
 	@echo "Done. venv at $(VENV)"
 
 setup: install ## Alias for install
@@ -97,14 +119,14 @@ test-integration: $(MODEL_FILE) ## Integration tests only (need the model)
 	@cd api && ../$(PYTEST) -v -m integration
 
 lint: ## ruff check (no fixes)
-	@$(VENV_BIN)/ruff check api/src ml/src api/tests || true
+	@$(RUFF) check api/src ml/src api/tests || true
 
 format: ## ruff format + ruff check --fix
-	@$(VENV_BIN)/ruff format api/src ml/src api/tests
-	@$(VENV_BIN)/ruff check --fix api/src ml/src api/tests || true
+	@$(RUFF) format api/src ml/src api/tests
+	@$(RUFF) check --fix api/src ml/src api/tests || true
 
 type-check: ## mypy
-	@$(VENV_BIN)/mypy api/src ml/src || true
+	@$(MYPY) api/src ml/src || true
 
 ## SECTION Run the API
 .PHONY: run run-prod
@@ -222,7 +244,6 @@ vertex-schedule-delete: ## Delete a schedule (NAME=...)
 	  PYTHONPATH=. $(PY) -m ml_vertex.schedule delete --name $${NAME:?set NAME}
 
 ## SECTION dbt (BigQuery curated layer)
-DBT          := $(VENV_BIN)/dbt
 DBT_PROFILES := ml_dbt/profiles
 DBT_PROJECT  := ml_dbt
 
